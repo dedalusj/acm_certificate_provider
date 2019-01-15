@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    Automate creation of ACM certificates
+
+Resources:
+    ACMCertificateProviderFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: acm_certificate_provider/
+        Handler: provider.handler
+        Runtime: python3.7
+        MemorySize: 128
+        Timeout: 300
+        Policies:
+          - LambdaInvokePolicy:
+              FunctionName: !Sub "${AWS::StackName}"
+          - Statement:
+            - Effect: Allow
+              Action:
+                - acm:RequestCertificate
+                - acm:DescribeCertificate
+                - acm:UpdateCertificateOptions
+                - acm:DeleteCertificate
+              Resource:
+                - '*'
+
+Outputs:
+    ACMCertificateProviderFunction:
+      Description: "Provider for ACM certificates"
+      Value: !GetAtt ACMCertificateProviderFunction.Arn
+      Export:
+        Name: acm-certificate-provider
+    ACMCertificateProviderFunctionIamRole:
+      Description: "Implicit IAM Role created for ACM Certificate provider function"
+      Value: !GetAtt ACMCertificateProviderFunctionRole.Arn
